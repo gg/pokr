@@ -6,48 +6,13 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/foreach.hpp>
 #include <boost/function.hpp>
-#include <boost/math/special_functions/binomial.hpp>
 #include <boost/random.hpp>
 #include <boost/test/unit_test.hpp>
 
+#include "combinatorics.h"
 #include "raywevaluator.h"
 
 namespace {
-
-// Returns the binomial coeffcient, n Choose k.
-// see: https://secure.wikimedia.org/wikipedia/en/wiki/Binomial_coefficient
-std::size_t C(std::size_t n, std::size_t k) {
-  if (n < k) return 0;
-  return boost::math::binomial_coefficient<double>(n, k);
-}
-
-// Returns the largest n such that C(n, k) <= pos.
-int CombinationElement(int k, int pos) {
-  int n = k;
-  std::size_t coeff = 1, prev_coeff = 0;
-
-  while (coeff <= pos) {
-    coeff = C(++n, k);
-    prev_coeff = coeff;
-  }
-
-  return n - 1;
-}
-
-// Returns the k-combination at position pos.
-//
-// Uses the algorithm described in the section titled "Finding the k-combination
-// for a given number":
-// https://secure.wikimedia.org/wikipedia/en/wiki/Combinatorial_number_system
-std::vector<int> GetKCombination(int k, int pos) {
-  std::vector<int> kcombination;
-  for (; k > 0; --k) {
-    int n = CombinationElement(k, pos);
-    kcombination.push_back(n);
-    pos -= C(n, k);
-  }
-  return kcombination;
-}
 
 typedef std::vector<int> CardIndices;
 
@@ -66,7 +31,7 @@ void ConvertToRayWCardIndices(CardIndices& indices) {
 std::vector<CardIndices> GenerateHands(
     const int cards_per_hand, const int num_hands_to_generate,
     boost::function<void (CardIndices&)> ConvertCardIndices) {
-  std::size_t num_possible_hands = C(52, cards_per_hand);
+  std::size_t num_possible_hands = Choose(52, cards_per_hand);
 
   typedef boost::mt19937 RNGType;
   typedef boost::uniform_int<> Distribution;
